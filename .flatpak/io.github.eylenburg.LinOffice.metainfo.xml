@@ -9,11 +9,7 @@
     <name>eylenburg</name>
   </developer>
   <launchable type="desktop-id">io.github.eylenburg.LinOffice.desktop</launchable>
-  <launchable type="desktop-id">io.github.eylenburg.LinOffice.word.desktop</launchable>
   <launchable type="desktop-id">io.github.eylenburg.LinOffice.excel.desktop</launchable>
-  <launchable type="desktop-id">io.github.eylenburg.LinOffice.powerpoint.desktop</launchable>
-  <launchable type="desktop-id">io.github.eylenburg.LinOffice.onenote.desktop</launchable>
-  <launchable type="desktop-id">io.github.eylenburg.LinOffice.outlook.desktop</launchable>
   <description>
     <p>
       LinOffice runs Microsoft Office in a Windows virtual machine and opens Word, Excel, PowerPoint, OneNote, and Outlook in their own windows. You need your own Windows and Microsoft Office license. Office is not included.

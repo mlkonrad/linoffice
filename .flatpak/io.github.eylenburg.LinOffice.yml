@@ -185,7 +185,8 @@ modules:
           -e 's|^Categories=Office$|Categories=Office;|' \
           apps/desktop/linoffice.desktop \
           > "/app/share/applications/${app_id}.desktop"
-        for app in excel word powerpoint onenote outlook; do
+        # Only Excel gets a launcher next to the main LinOffice entry.
+        for app in excel; do
           sed \
             -e 's/\r$//' \
             -e 's|^Exec=/PATH/linoffice.sh |Exec=linoffice |' \
