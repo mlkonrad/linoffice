@@ -1212,8 +1212,15 @@ function verify_container_health() {
         sleep 20
     fi
     
-    # Check container logs for any obvious errors
+    # Check container logs for any obvious errors. Only look at the lines from
+    # the most recent successful boot onward: errors printed before it (for
+    # example a stalled ISO download that dockur retried and completed) were
+    # recovered from. Windows Setup logs only a few reboot lines, so such a
+    # stale error otherwise stays in the last 50 lines and fails every retry.
     local container_logs=$(podman logs --tail 50 "$CONTAINER_NAME" 2>/dev/null || echo "")
+    if echo "$container_logs" | grep -q "Windows started successfully"; then
+        container_logs=$(echo "$container_logs" | awk '/Windows started successfully/ { buf = "" } { buf = buf $0 "\n" } END { printf "%s", buf }')
+    fi
     if echo "$container_logs" | grep -iq "error\|failed\|fatal"; then
         print_error "Container logs show potential issues"
         print_info "If the container is in an improper state, try these commands to fix it:

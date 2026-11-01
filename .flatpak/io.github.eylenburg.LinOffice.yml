@@ -6,15 +6,18 @@
 #
 # --filesystem=home grants the real home directory, which is what Office needs
 # for the RDP home drive. It does not include other applications' ~/.var/app.
-# PySide6 comes from io.qt.PySide.BaseApp.
+#
+# PySide6 is installed from the upstream PyPI wheels, which bundle their own
+# Qt. Do not use io.qt.PySide.BaseApp: its PySide6 links against the
+# runtime's Qt private API, which is versioned per Qt patch release. When the
+# KDE runtime moved from Qt 6.11.2 to 6.11.3, that PySide6 failed to load
+# ("undefined symbol ... QtPrivate_6_11_2") and the GUI could not start.
 
 id: io.github.eylenburg.LinOffice
 runtime: org.kde.Platform
 runtime-version: '6.11'
 separate-locales: false
 sdk: org.kde.Sdk
-base: io.qt.PySide.BaseApp
-base-version: '6.11'
 command: linoffice-gui
 finish-args:
   - --share=ipc
@@ -32,12 +35,34 @@ finish-args:
   - --talk-name=org.freedesktop.Flatpak
 build-options:
   no-debuginfo: true
-  env:
-    - BASEAPP_REMOVE_WEBENGINE=1
-    - BASEAPP_DISABLE_NUMPY=1
-cleanup-commands:
-  - /app/cleanup-BaseApp.sh
 modules:
+  # Self-contained PySide6 (QtCore, QtGui, QtWidgets, QtUiTools) with its own
+  # Qt libraries, so runtime Qt updates cannot break it.
+  - name: pyside6
+    buildsystem: simple
+    build-commands:
+      - pip3 install --verbose --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} --no-deps --no-compile shiboken6 PySide6-Essentials
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/7c/4a/696e3a9ed26436b1b41ca22dd21e7bce214ba1a1e1dea5c84b5627444c65/shiboken6-6.11.3-cp310-abi3-manylinux_2_34_x86_64.whl
+        sha256: e601c957011345c741b88f661a12486f478db881d6777bdf37e3dc7a8d3387c6
+        only-arches:
+          - x86_64
+      - type: file
+        url: https://files.pythonhosted.org/packages/91/23/9692f9b9a7cf89c0e8b99da228a728064aa827dc115b5dc974156bcf14fc/pyside6_essentials-6.11.3-cp310-abi3-manylinux_2_34_x86_64.whl
+        sha256: c6a5c3b58bf55aef6e09a7de690ff6133335014ab81a7f22f56363ea08e8f6a3
+        only-arches:
+          - x86_64
+    cleanup:
+      # Developer tools and bindings metadata, not needed at runtime.
+      - /bin
+      - /lib/python3*/site-packages/PySide6/Qt/libexec
+      - /lib/python3*/site-packages/PySide6/include
+      - /lib/python3*/site-packages/PySide6/typesystems
+      - /lib/python3*/site-packages/PySide6/glue
+      - /lib/python3*/site-packages/PySide6/*.pyi
+      - /lib/python3*/site-packages/PySide6/scripts
+
   - name: python-deps
     buildsystem: simple
     build-commands:
